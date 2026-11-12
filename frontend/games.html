@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Games Arena | EDUTECH NEXUS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/nexus-core.css">
+  <style>
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 26px;
+    }
+    .game-arena-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: blur(16px);
+      transition: var(--transition-normal);
+      position: relative;
+      overflow: hidden;
+    }
+    .game-arena-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--border-glow);
+      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.7), var(--shadow-glow);
+    }
+    .game-card-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    .game-card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0 18px;
+    }
+    .feature-list-bullet {
+      list-style: none;
+      padding: 0;
+      margin: 14px 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .feature-list-bullet li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nexus-student.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const layout = await renderStudentLayout('games.html', 'Technical Games Arena', 'Compete in our three official engineering challenges. Score points to ascend the statewide Leaderboard.');
+      if (!layout) return;
+
+      const { pageContent, headerActions } = layout;
+
+      headerActions.innerHTML = `
+        <a href="leaderboard.html" class="btn-nexus btn-nexus-primary">
+          <i class="fa-solid fa-trophy" style="color:#fbbf24;"></i> View Common Leaderboard
+        </a>
+      `;
+
+      pageContent.innerHTML = `
+        <div class="games-grid">
+          <!-- Game 1: Debugging Challenge -->
+          <article class="game-arena-card" style="border-top:4px solid #ef4444;">
+            <div>
+              <div class="game-card-icon" style="background:rgba(239,68,68,0.15);color:#f87171;">
+                <i class="fa-solid fa-bug"></i>
+              </div>
+              <div class="game-card-meta">
+                <span class="nexus-badge badge-rose">Game 1</span>
+                <span class="nexus-badge badge-purple">3 Difficulty Levels</span>
+                <span class="nexus-badge badge-blue">30 Mins Total</span>
+              </div>
+              <h3 style="font-size:22px;color:#fff;font-weight:800;margin-bottom:10px;">Debugging Challenge</h3>
+              <p style="color:var(--text-secondary);font-size:14px;line-height:1.6;">
+                Identify and fix syntax and algorithmic errors under strict time limits across Easy, Medium, and Hard tiers.
+              </p>
+              <ul class="feature-list-bullet">
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Easy, Medium, Hard (10 mins each)</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Automatic answer evaluation</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Auto-transition on level completion</li>
+              </ul>
+            </div>
+            <a href="debugging-game.html" class="btn-nexus btn-nexus-glow" style="text-align:center;padding:12px;font-size:14px;font-weight:700;">
+              <i class="fa-solid fa-wrench"></i> Play Debugging Challenge
+            </a>
+          </article>
+
+          <!-- Game 2: Technical Quiz -->
+          <article class="game-arena-card" style="border-top:4px solid #38bdf8;">
+            <div>
+              <div class="game-card-icon" style="background:rgba(56,189,248,0.15);color:#38bdf8;">
+                <i class="fa-solid fa-circle-question"></i>
+              </div>
+              <div class="game-card-meta">
+                <span class="nexus-badge badge-blue">Game 2</span>
+                <span class="nexus-badge badge-green">10 Languages</span>
+                <span class="nexus-badge badge-amber">10 to 100 Questions</span>
+              </div>
+              <h3 style="font-size:22px;color:#fff;font-weight:800;margin-bottom:10px;">Technical Quiz</h3>
+              <p style="color:var(--text-secondary);font-size:14px;line-height:1.6;">
+                Choose your programming language and customize question volume. Features randomized options A, B, C, D with live timer.
+              </p>
+              <ul class="feature-list-bullet">
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Python, Java, C, C++, JS, HTML, CSS, PHP, SQL, C#</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> 4 options with randomized positions</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Marks awarded only for correct answers</li>
+              </ul>
+            </div>
+            <a href="tech-quiz.html" class="btn-nexus btn-nexus-glow" style="text-align:center;padding:12px;font-size:14px;font-weight:700;">
+              <i class="fa-solid fa-play"></i> Configure & Play Quiz
+            </a>
+          </article>
+
+          <!-- Game 3: Logic & Coding Challenge -->
+          <article class="game-arena-card" style="border-top:4px solid #a855f7;">
+            <div>
+              <div class="game-card-icon" style="background:rgba(168,85,247,0.15);color:#c084fc;">
+                <i class="fa-solid fa-code"></i>
+              </div>
+              <div class="game-card-meta">
+                <span class="nexus-badge badge-purple">Game 3</span>
+                <span class="nexus-badge badge-blue">Algorithmic</span>
+                <span class="nexus-badge badge-green">Test Assertions</span>
+              </div>
+              <h3 style="font-size:22px;color:#fff;font-weight:800;margin-bottom:10px;">Logic & Coding Challenge</h3>
+              <p style="color:var(--text-secondary);font-size:14px;line-height:1.6;">
+                Write and test algorithmic code solutions evaluated dynamically against assertions across multiple difficulty tiers.
+              </p>
+              <ul class="feature-list-bullet">
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Real-time in-browser code editor</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Automated test case assertions</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Dynamic performance scoring</li>
+              </ul>
+            </div>
+            <a href="code-challenge.html" class="btn-nexus btn-nexus-glow" style="text-align:center;padding:12px;font-size:14px;font-weight:700;">
+              <i class="fa-solid fa-terminal"></i> Play Coding Challenge
+            </a>
+          </article>
+        </div>
+      `;
+    });
+  </script>
+</body>
+</html>

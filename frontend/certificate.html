@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Certificates | EDUTECH NEXUS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/nexus-core.css">
+  <style>
+    .certificates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 26px;
+      margin-bottom: 36px;
+    }
+    .cert-item-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: blur(16px);
+      transition: var(--transition-normal);
+      position: relative;
+    }
+    .cert-item-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(245, 158, 11, 0.4);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.2);
+    }
+    .cert-ribbon {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      font-size: 26px;
+      color: #fbbf24;
+    }
+
+    /* A4 Landscape Professional Certificate Frame */
+    .cert-frame-landscape {
+      background: #060b18;
+      border: 8px solid #1e293b;
+      outline: 3px solid #fbbf24;
+      border-radius: 12px;
+      padding: 40px 48px;
+      color: #fff;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+      margin: 0 auto;
+      max-width: 820px;
+      aspect-ratio: 1.414 / 1; /* A4 Landscape aspect ratio */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+    .cert-seal-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 140px;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.02);
+      pointer-events: none;
+      letter-spacing: 10px;
+      user-select: none;
+    }
+    .cert-org-header {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      color: #38bdf8;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .cert-main-heading {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #fbbf24;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .cert-presented-lead {
+      color: #94a3b8;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 8px 0;
+    }
+    .cert-student-name-prominent {
+      font-size: 34px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin: 6px 0;
+      border-bottom: 2px solid rgba(251, 191, 36, 0.5);
+      display: inline-block;
+      padding: 0 20px 6px;
+    }
+    .cert-statement-body {
+      color: #cbd5e1;
+      font-size: 13.5px;
+      line-height: 1.7;
+      max-width: 620px;
+      margin: 10px auto;
+    }
+    .cert-course-title-bold {
+      font-size: 20px;
+      font-weight: 800;
+      color: #38bdf8;
+      margin: 4px 0;
+    }
+    .cert-footer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: flex-end;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      padding-top: 16px;
+      margin-top: 14px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .signature-font {
+      font-family: 'Brush Script MT', 'Dancing Script', cursive, sans-serif;
+      font-size: 26px;
+      color: #fbbf24;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 0;
+      }
+      body * {
+        visibility: hidden !important;
+      }
+      #print-area, #print-area * {
+        visibility: visible !important;
+      }
+      #print-area {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #060b18 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .cert-frame-landscape {
+        width: 95vw !important;
+        max-width: 1000px !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="print-area" style="display:none;"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nexus-student.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const layout = await renderStudentLayout('certificate.html', 'Certificates & Credentials', 'Official verified course completion credentials with unique IDs and administrative digital signatures.');
+      if (!layout) return;
+
+      const { pageContent, headerActions } = layout;
+
+      headerActions.innerHTML = `
+        <a href="verify-certificate.html" class="btn-nexus btn-nexus-secondary">
+          <i class="fa-solid fa-shield-halved"></i> Verify Certificate
+        </a>
+      `;
+
+      pageContent.innerHTML = `
+        <!-- Issued Certificates Grid -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <h3 style="font-size:20px;"><i class="fa-solid fa-award" style="color:#fbbf24;"></i> Issued Credentials</h3>
+        </div>
+        <div class="certificates-grid" id="issued-grid">
+          <div class="state-container" style="grid-column:1/-1;">
+            <div class="state-spinner"></div>
+            <div class="state-title">Loading Verified Credentials...</div>
+          </div>
+        </div>
+
+        <!-- Certificate Viewer Modal -->
+        <div class="modal-overlay" id="cert-modal">
+          <div class="modal-dialog" style="max-width:880px;width:95%;">
+            <div class="modal-header">
+              <h3 style="font-size:18px;"><i class="fa-solid fa-certificate" style="color:#fbbf24;"></i> Official Credential Viewer</h3>
+              <button class="modal-close" id="cert-modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="cert-modal-content" style="padding:20px;overflow-x:auto;"></div>
+            <div style="padding:16px 24px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+              <a href="#" id="cert-verify-link" target="_blank" class="btn-nexus btn-nexus-secondary" style="font-size:13px;">
+                <i class="fa-solid fa-shield-halved"></i> Public Verification Page
+              </a>
+              <button class="btn-nexus btn-nexus-primary" id="cert-print-btn">
+                <i class="fa-solid fa-download"></i> Print / Download PDF (A4 Landscape)
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      let userCertificates = [];
+      let activeCert = null;
+
+      function buildCertificateHTML(cert) {
+        const dateStr = new Date(cert.completionDate || cert.issueDate || cert.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const adminName = cert.adminName || 'Course Administrator';
+        const adminDesignation = cert.adminDesignation || 'Course Administrator';
+        const signatureText = cert.adminSignature || 'Course Administrator';
+        const orgName = cert.organizationName || 'EDUTECH NEXUS';
+
+        return `
+          <div class="cert-frame-landscape">
+            <div class="cert-seal-watermark">NEXUS</div>
+
+            <!-- Top Header -->
+            <div>
+              <div class="cert-org-header">${orgName}</div>
+              <div class="cert-main-heading">CERTIFICATE OF COMPLETION</div>
+              <div class="cert-presented-lead">THIS CERTIFICATE IS PROUDLY PRESENTED TO</div>
+            </div>
+
+            <!-- Recipient Prominent Name -->
+            <div>
+              <div class="cert-student-name-prominent">${cert.studentName || 'Student Scholar'}</div>
+            </div>
+
+            <!-- Statement & Course Name -->
+            <div>
+              <p class="cert-statement-body">
+                This certificate is awarded in recognition of successfully completing the course and fulfilling all learning requirements in
+              </p>
+              <div class="cert-course-title-bold">${cert.courseName}</div>
+            </div>
+
+            <!-- Footer Details (Date, Unique ID, Admin Signature & Designation) -->
+            <div class="cert-footer-grid">
+              <div>
+                <span style="color:#94a3b8;font-size:11px;display:block;text-transform:uppercase;">Completion Date</span>
+                <strong style="color:#fff;">${dateStr}</strong>
+              </div>
+
+              <div>
+                <span style="color:#94a3b8;font-size:11px;display:block;text-transform:uppercase;">Certificate ID</span>
+                <strong style="color:#fbbf24;font-family:monospace;letter-spacing:1px;">${cert.certificateId}</strong>
+              </div>
+
+              <div>
+                <div class="signature-font">${signatureText}</div>
+                <div style="border-top:1px solid rgba(255,255,255,0.3);padding-top:3px;">
+                  <strong style="color:#fff;display:block;">${adminName}</strong>
+                  <span style="color:#94a3b8;font-size:11px;">${adminDesignation}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderPrintFrame(cert) {
+        const printArea = document.getElementById('print-area');
+        printArea.style.display = 'block';
+        printArea.innerHTML = buildCertificateHTML(cert);
+      }
+
+      function showCertificateModal(cert) {
+        activeCert = cert;
+        const modal = document.getElementById('cert-modal');
+        const content = document.getElementById('cert-modal-content');
+        const verifyLink = document.getElementById('cert-verify-link');
+
+        verifyLink.href = `verify-certificate.html?id=${encodeURIComponent(cert.certificateId)}`;
+        content.innerHTML = buildCertificateHTML(cert);
+
+        renderPrintFrame(cert);
+        modal.classList.add('active');
+      }
+
+      async function loadCertificates() {
+        try {
+          const res = await api.get('/certificates/my');
+          userCertificates = res.certificates || [];
+
+          const issuedGrid = document.getElementById('issued-grid');
+
+          if (!userCertificates.length) {
+            issuedGrid.innerHTML = `
+              <div class="state-container" style="grid-column:1/-1;">
+                <div class="state-icon"><i class="fa-solid fa-award"></i></div>
+                <div class="state-title">No Certificates Earned Yet</div>
+                <p class="state-desc">Watch 100% of all 10 lessons in any course to unlock your official Certificate of Completion.</p>
+                <a href="courses.html" class="btn-nexus btn-nexus-primary" style="margin-top:16px;">Browse 5 Core Courses</a>
+              </div>
+            `;
+            return;
+          }
+
+          issuedGrid.innerHTML = userCertificates.map(cert => {
+            const dateStr = new Date(cert.completionDate || cert.issueDate || cert.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            return `
+              <div class="cert-item-card">
+                <div class="cert-ribbon"><i class="fa-solid fa-certificate"></i></div>
+                <div>
+                  <span class="nexus-badge badge-amber" style="margin-bottom:10px;">Verified Credential</span>
+                  <h4 style="font-size:18px;margin-bottom:10px;color:#fff;">${cert.courseName}</h4>
+                  
+                  <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;">
+                    <i class="fa-regular fa-calendar" style="margin-right:6px;color:var(--cyan-accent);"></i>
+                    Issued: <strong style="color:#fff;">${dateStr}</strong>
+                  </div>
+                  <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+                    <i class="fa-solid fa-hashtag" style="margin-right:6px;color:#fbbf24;"></i>
+                    Certificate ID: <strong style="color:#fbbf24;font-family:monospace;">${cert.certificateId}</strong>
+                  </div>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <button class="btn-nexus btn-nexus-primary" data-view-cert="${cert._id}">
+                    <i class="fa-solid fa-eye"></i> View Certificate
+                  </button>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <button class="btn-nexus btn-nexus-secondary" data-print-cert="${cert._id}">
+                      <i class="fa-solid fa-download"></i> Print / PDF
+                    </button>
+                    <a href="verify-certificate.html?id=${encodeURIComponent(cert.certificateId)}" class="btn-nexus btn-nexus-secondary" style="text-align:center;">
+                      <i class="fa-solid fa-shield-halved"></i> Verify
+                    </a>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          issuedGrid.querySelectorAll('[data-view-cert]').forEach(btn => {
+            btn.onclick = () => {
+              const c = userCertificates.find(x => x._id === btn.dataset.viewCert);
+              if (c) showCertificateModal(c);
+            };
+          });
+
+          issuedGrid.querySelectorAll('[data-print-cert]').forEach(btn => {
+            btn.onclick = () => {
+              const c = userCertificates.find(x => x._id === btn.dataset.printCert);
+              if (c) {
+                renderPrintFrame(c);
+                window.print();
+              }
+            };
+          });
+
+          // If query param ?id=... was passed, open it directly
+          const urlParamId = new URLSearchParams(window.location.search).get('id');
+          if (urlParamId) {
+            const found = userCertificates.find(x => x.certificateId === urlParamId || x._id === urlParamId);
+            if (found) showCertificateModal(found);
+          }
+
+        } catch (err) {
+          document.getElementById('issued-grid').innerHTML = `
+            <div class="state-container" style="grid-column:1/-1;">
+              <div class="state-icon" style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <div class="state-title">Error Loading Certificates</div>
+              <p class="state-desc">${err.message}</p>
+            </div>
+          `;
+        }
+      }
+
+      document.getElementById('cert-print-btn').onclick = () => {
+        if (activeCert) {
+          renderPrintFrame(activeCert);
+          window.print();
+        }
+      };
+
+      document.getElementById('cert-modal-close').onclick = () => {
+        document.getElementById('cert-modal').classList.remove('active');
+        document.getElementById('print-area').style.display = 'none';
+      };
+
+      await loadCertificates();
+    });
+  </script>
+</body>
+</html>

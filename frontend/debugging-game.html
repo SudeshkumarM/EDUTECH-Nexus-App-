@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debugging Challenge | EDUTECH NEXUS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/nexus-core.css">
+  <style>
+    .debug-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      align-items: flex-start;
+    }
+    .levels-sidebar-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .level-pills-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .level-pill-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 13px;
+      cursor: pointer;
+      transition: var(--transition-normal);
+      text-align: left;
+      font-family: inherit;
+    }
+    .level-pill-btn.active {
+      background: rgba(99, 102, 241, 0.22);
+      border-color: #6366f1;
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 0 16px rgba(99, 102, 241, 0.3);
+    }
+    .level-pill-btn.done {
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    .debug-workspace-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.6);
+    }
+    .timer-badge-header {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 15px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: monospace;
+    }
+    .code-editor-mock {
+      background: #020617;
+      border: 1px solid var(--border-medium);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 18px 0;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+    }
+    .editor-header {
+      background: #0b1329;
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .code-display-area {
+      padding: 20px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #38bdf8;
+      white-space: pre-wrap;
+      word-break: break-all;
+      background: rgba(2, 6, 23, 0.95);
+    }
+    .feedback-banner {
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      margin: 16px 0;
+      font-weight: 700;
+      font-size: 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+    .feedback-correct {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10b981;
+      color: #34d399;
+    }
+    .feedback-wrong {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+    }
+    @media (max-width: 800px) {
+      .debug-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nexus-student.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const layout = await renderStudentLayout('games.html', 'Debugging Challenge', 'Identify and correct errors across 3 progressive difficulty levels (Easy, Medium, Hard). 10 minutes per level (30 minutes total).');
+      if (!layout) return;
+
+      const { pageContent, headerActions } = layout;
+
+      headerActions.innerHTML = `
+        <div class="timer-badge-header" id="level-timer-box">
+          <i class="fa-solid fa-stopwatch"></i> Level Time: <span id="timer-display">10:00</span>
+        </div>
+        <a href="games.html" class="btn-nexus btn-nexus-secondary">
+          <i class="fa-solid fa-arrow-left"></i> Exit Game
+        </a>
+      `;
+
+      pageContent.innerHTML = `
+        <div class="state-container" id="debug-loader">
+          <div class="state-spinner"></div>
+          <div class="state-title">Loading Debugging Levels from Database...</div>
+        </div>
+
+        <div class="debug-layout" id="debug-view" style="display:none;">
+          <!-- Left: 3 Difficulty Levels Sidebar -->
+          <div class="levels-sidebar-card">
+            <h3 style="font-size:17px;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px;">
+              <i class="fa-solid fa-layer-group" style="color:var(--cyan-accent);"></i> Challenge Levels
+            </h3>
+            <p style="font-size:12px;color:var(--text-secondary);">3 Tiers • 10 Mins Each • 30 Mins Total</p>
+
+            <div class="level-pills-list" id="level-pills-container">
+              <!-- Dynamically populated -->
+            </div>
+
+            <div style="margin-top:24px;border-top:1px solid var(--border-subtle);padding-top:16px;">
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Current Total Score:</div>
+              <div style="font-size:24px;color:#fbbf24;font-weight:800;" id="total-score-badge">
+                0 / 100
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Main Debugging Workspace -->
+          <div class="debug-workspace-card" id="workspace-panel">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+              <div>
+                <span class="nexus-badge badge-blue" id="level-difficulty-badge">Level 1: Easy</span>
+                <span class="nexus-badge badge-amber" style="margin-left:8px;" id="level-time-badge"><i class="fa-regular fa-clock"></i> 10 Minutes</span>
+                <h2 style="font-size:22px;color:#fff;margin-top:8px;" id="level-title">Buggy Code Snippet</h2>
+              </div>
+              <div id="level-score-display" style="font-size:14px;font-weight:700;color:#38bdf8;"></div>
+            </div>
+
+            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:12px;" id="level-instructions">
+              Analyze the code snippet below. Identify the bug and submit the exact corrected syntax or fixed token.
+            </p>
+
+            <!-- Code Editor Mock -->
+            <div class="code-editor-mock">
+              <div class="editor-header">
+                <span id="editor-filename" style="font-family:monospace;">solution.js</span>
+                <span style="font-size:11px;color:#f87171;"><i class="fa-solid fa-bug"></i> Error contained inside code</span>
+              </div>
+              <div class="code-display-area" id="bug-code-display"></div>
+            </div>
+
+            <!-- Fix Input Form -->
+            <div>
+              <label style="display:block;font-size:13px;font-weight:700;color:#fff;margin-bottom:8px;">
+                Enter Your Corrected Answer / Code Fix:
+              </label>
+              <input type="text" id="answer-input" class="nexus-input" placeholder="Type the corrected syntax or code replacement..." style="font-family:monospace;font-size:15px;margin-bottom:14px;" required>
+            </div>
+
+            <!-- Feedback Box -->
+            <div id="feedback-box" class="feedback-banner"></div>
+
+            <!-- Action Controls -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;flex-wrap:wrap;gap:12px;">
+              <button id="submit-answer-btn" class="btn-nexus btn-nexus-primary" style="padding:12px 28px;font-weight:700;">
+                <i class="fa-solid fa-check"></i> SUBMIT ANSWER FOR EVALUATION
+              </button>
+
+              <button id="next-level-btn" class="btn-nexus btn-nexus-glow" style="padding:12px 26px;font-weight:700;display:none;">
+                Move to Next Level <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Final Scorecard Screen (after completing all 3 levels) -->
+          <div class="debug-workspace-card" id="final-scorecard-panel" style="display:none;text-align:center;padding:40px;">
+            <div style="font-size:54px;color:#fbbf24;margin-bottom:14px;"><i class="fa-solid fa-trophy"></i></div>
+            <h2 style="font-size:28px;color:#fff;font-weight:800;margin-bottom:8px;">Debugging Challenge Completed!</h2>
+            <p style="color:var(--text-secondary);font-size:15px;max-width:500px;margin:0 auto 24px;">
+              You have finished all 3 difficulty levels. Your verified score has been saved to the MongoDB Leaderboard.
+            </p>
+
+            <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;max-width:540px;margin:0 auto 28px;">
+              <div style="background:rgba(15,23,42,0.7);padding:16px;border-radius:10px;border:1px solid var(--border-subtle);">
+                <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;">Easy Level</div>
+                <div style="font-size:22px;color:#fff;font-weight:800;margin-top:4px;" id="score-level-0">0/30</div>
+              </div>
+              <div style="background:rgba(15,23,42,0.7);padding:16px;border-radius:10px;border:1px solid var(--border-subtle);">
+                <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;">Medium Level</div>
+                <div style="font-size:22px;color:#fff;font-weight:800;margin-top:4px;" id="score-level-1">0/35</div>
+              </div>
+              <div style="background:rgba(15,23,42,0.7);padding:16px;border-radius:10px;border:1px solid var(--border-subtle);">
+                <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;">Hard Level</div>
+                <div style="font-size:22px;color:#fff;font-weight:800;margin-top:4px;" id="score-level-2">0/35</div>
+              </div>
+            </div>
+
+            <div style="font-size:18px;color:#10b981;font-weight:800;margin-bottom:28px;" id="final-total-score-text">
+              Final Total Score: 0 / 100
+            </div>
+
+            <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+              <a href="leaderboard.html" class="btn-nexus btn-nexus-primary" style="padding:12px 28px;">
+                <i class="fa-solid fa-trophy"></i> View Global Leaderboard
+              </a>
+              <button onclick="window.location.reload()" class="btn-nexus btn-nexus-secondary" style="padding:12px 24px;">
+                <i class="fa-solid fa-rotate-right"></i> Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 3 Configured Levels: Easy (10 min), Medium (10 min), Hard (10 min)
+      const defaultLevels = [
+        {
+          id: 1,
+          difficulty: 'Easy',
+          title: 'HTML & Syntax Bug',
+          timeLimitSeconds: 600, // 10 minutes
+          weight: 30,
+          filename: 'index.html',
+          code: `<div class="card">\n  <h1>Welcome to EDUTECH</h1\n  <p>Learn programming online.</p>\n</div>`,
+          correctAnswer: '</h1>',
+          acceptableAnswers: ['</h1>', '<h1>Welcome to EDUTECH</h1>'],
+          explanation: 'Closing h1 tag was missing closing angle bracket ">".'
+        },
+        {
+          id: 2,
+          difficulty: 'Medium',
+          title: 'JavaScript Loop & Indexing Bug',
+          timeLimitSeconds: 600, // 10 minutes
+          weight: 35,
+          filename: 'reverseString.js',
+          code: `function reverseWords(str) {\n  let words = str.split(" ");\n  let reversed = [];\n  for (let i = words.length; i >= 0; i--) {\n    reversed.push(words[i]);\n  }\n  return reversed.join(" ");\n}`,
+          correctAnswer: 'words.length - 1',
+          acceptableAnswers: ['words.length - 1', 'i = words.length - 1', 'words.length-1'],
+          explanation: 'Loop index must start at words.length - 1 to prevent reading undefined.'
+        },
+        {
+          id: 3,
+          difficulty: 'Hard',
+          title: 'Algorithmic Binary Search Off-by-One',
+          timeLimitSeconds: 600, // 10 minutes
+          weight: 35,
+          filename: 'binarySearch.js',
+          code: `function binarySearch(arr, target) {\n  let left = 0, right = arr.length - 1;\n  while (left < right) {\n    let mid = Math.floor((left + right) / 2);\n    if (arr[mid] === target) return mid;\n    if (arr[mid] < target) left = mid;\n    else right = mid - 1;\n  }\n  return -1;\n}`,
+          correctAnswer: 'left = mid + 1',
+          acceptableAnswers: ['left = mid + 1', 'mid + 1', 'left=mid+1'],
+          explanation: 'When arr[mid] < target, left must be incremented to mid + 1 to avoid infinite loop.'
+        }
+      ];
+
+      let levels = defaultLevels;
+      let currentLevelIndex = 0;
+      let levelScores = [0, 0, 0];
+      let levelCompleted = [false, false, false];
+      let timerSeconds = 600;
+      let timerInterval = null;
+      let activeGameRecord = null;
+      const attemptId = `debug-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+      try {
+        const gamesRes = await api.get('/games');
+        const dbGame = (gamesRes.games || []).find(g => g.slug === 'debugging-challenge' || g.gameType === 'debugging');
+        if (dbGame) activeGameRecord = dbGame;
+      } catch (e) {
+        console.warn('Could not load game record:', e);
+      }
+
+      document.getElementById('debug-loader').style.display = 'none';
+      document.getElementById('debug-view').style.display = 'grid';
+
+      function renderSidebar() {
+        const container = document.getElementById('level-pills-container');
+        container.innerHTML = levels.map((lvl, idx) => {
+          const isActive = idx === currentLevelIndex;
+          const isDone = levelCompleted[idx];
+          const score = levelScores[idx];
+
+          return `
+            <div class="level-pill-btn ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}">
+              <div>
+                <strong>${lvl.difficulty} (10 Min)</strong>
+                <div style="font-size:11px;color:var(--text-muted);">${lvl.title}</div>
+              </div>
+              <div>
+                ${isDone 
+                  ? `<span style="font-weight:700;color:${score > 0 ? '#10b981' : '#ef4444'};">${score} / ${lvl.weight}</span>`
+                  : `<span class="nexus-badge badge-blue">Pending</span>`}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        const totalEarned = levelScores.reduce((a, b) => a + b, 0);
+        document.getElementById('total-score-badge').textContent = `${totalEarned} / 100`;
+      }
+
+      function startLevelTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerSeconds = levels[currentLevelIndex].timeLimitSeconds || 600;
+
+        function tick() {
+          const m = Math.floor(timerSeconds / 60);
+          const s = timerSeconds % 60;
+          document.getElementById('timer-display').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+          if (timerSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            showToast(`Time expired for ${levels[currentLevelIndex].difficulty} level! Automatically transitioning...`, 'warning');
+            evaluateAnswer(true); // timeout = 0 marks
+          }
+          timerSeconds--;
+        }
+
+        tick();
+        timerInterval = setInterval(tick, 1000);
+      }
+
+      function loadLevel(idx) {
+        currentLevelIndex = idx;
+        const lvl = levels[idx];
+
+        document.getElementById('level-difficulty-badge').textContent = `Level ${idx + 1}: ${lvl.difficulty}`;
+        document.getElementById('level-title').textContent = lvl.title;
+        document.getElementById('editor-filename').textContent = lvl.filename;
+        document.getElementById('bug-code-display').textContent = lvl.code;
+        document.getElementById('answer-input').value = '';
+        document.getElementById('answer-input').disabled = false;
+        document.getElementById('submit-answer-btn').disabled = false;
+        document.getElementById('submit-answer-btn').style.display = 'inline-flex';
+        document.getElementById('next-level-btn').style.display = 'none';
+
+        const fb = document.getElementById('feedback-box');
+        fb.style.display = 'none';
+        fb.className = 'feedback-banner';
+
+        renderSidebar();
+        startLevelTimer();
+      }
+
+      function evaluateAnswer(isTimeout = false) {
+        if (timerInterval) clearInterval(timerInterval);
+        const lvl = levels[currentLevelIndex];
+        const inputVal = (document.getElementById('answer-input').value || '').trim();
+        const fb = document.getElementById('feedback-box');
+        const submitBtn = document.getElementById('submit-answer-btn');
+        const nextBtn = document.getElementById('next-level-btn');
+
+        document.getElementById('answer-input').disabled = true;
+        submitBtn.disabled = true;
+        submitBtn.style.display = 'none';
+
+        let isCorrect = false;
+        if (!isTimeout && inputVal) {
+          const normInput = inputVal.replace(/\s+/g, '').toLowerCase();
+          const matches = lvl.acceptableAnswers.some(ans => ans.replace(/\s+/g, '').toLowerCase() === normInput);
+          if (matches) isCorrect = true;
+        }
+
+        const scoreEarned = isCorrect ? lvl.weight : 0;
+        levelScores[currentLevelIndex] = scoreEarned;
+        levelCompleted[currentLevelIndex] = true;
+
+        fb.style.display = 'flex';
+        if (isCorrect) {
+          fb.className = 'feedback-banner feedback-correct';
+          fb.innerHTML = `<i class="fa-solid fa-circle-check"></i> Correct! Awarded full ${scoreEarned} marks. ${lvl.explanation}`;
+          showToast(`Level ${currentLevelIndex + 1} Solved! +${scoreEarned} Marks Awarded!`, 'success');
+        } else {
+          fb.className = 'feedback-banner feedback-wrong';
+          fb.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Incorrect. Awarded 0 marks. Correct fix: <code>${lvl.correctAnswer}</code>. ${lvl.explanation}`;
+          showToast(`Level ${currentLevelIndex + 1} Failed. 0 Marks awarded.`, 'error');
+        }
+
+        renderSidebar();
+
+        if (currentLevelIndex < levels.length - 1) {
+          nextBtn.style.display = 'inline-flex';
+          nextBtn.onclick = () => {
+            loadLevel(currentLevelIndex + 1);
+          };
+          // Auto advance after 4 seconds if timeout occurred
+          if (isTimeout) {
+            setTimeout(() => {
+              if (currentLevelIndex < levels.length - 1) loadLevel(currentLevelIndex + 1);
+            }, 3000);
+          }
+        } else {
+          // Finished all 3 levels
+          setTimeout(finishChallenge, 2500);
+        }
+      }
+
+      async function finishChallenge() {
+        if (timerInterval) clearInterval(timerInterval);
+        document.getElementById('workspace-panel').style.display = 'none';
+        document.getElementById('final-scorecard-panel').style.display = 'block';
+
+        const totalEarned = levelScores.reduce((a, b) => a + b, 0);
+        document.getElementById('score-level-0').textContent = `${levelScores[0]} / 30`;
+        document.getElementById('score-level-1').textContent = `${levelScores[1]} / 35`;
+        document.getElementById('score-level-2').textContent = `${levelScores[2]} / 35`;
+        document.getElementById('final-total-score-text').textContent = `Final Total Score: ${totalEarned} / 100 Marks (${levelScores.filter(s => s > 0).length} of 3 Levels Correct)`;
+
+        // Save result to MongoDB and update Leaderboard
+        try {
+          const gameId = activeGameRecord?._id || 'debugging-challenge';
+          await api.post(`/games/${encodeURIComponent(gameId)}/submit`, {
+            attemptId,
+            gameName: 'Debugging Challenge',
+            score: totalEarned,
+            totalQuestions: 3,
+            correctCount: levelScores.filter(s => s > 0).length,
+            timeTaken: 1800 - timerSeconds
+          });
+          showToast('Game score officially submitted to the Leaderboard!', 'success');
+        } catch (err) {
+          console.warn('Game submit warning:', err.message);
+        }
+      }
+
+      document.getElementById('submit-answer-btn').onclick = () => evaluateAnswer(false);
+
+      loadLevel(0);
+    });
+  </script>
+</body>
+</html>
